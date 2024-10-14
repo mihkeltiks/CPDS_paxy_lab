@@ -1,6 +1,6 @@
 -module(acceptorFaultTolerance).
 -export([start/2]).
--define(drop_ratio, 4). % Drops 1 in 10 messages
+-define(drop_ratio, 0). % Drops 1 in 10 messages
 -define(delay, 1).
 
 
