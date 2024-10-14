@@ -106,12 +106,11 @@ accept(Round, Proposal, Acceptors) ->
   lists:foreach(Fun, Acceptors).
 
 send(Name, Message) ->
-    if is_tuple(Name) -> % Remote acceptor
+    if is_tuple(Name) -> 
         Name ! Message;
-    true -> % Local acceptor
+    true -> 
         case whereis(Name) of
             undefined ->
-                % Acceptor is down; handle accordingly
                 down;
             Pid ->
                 Pid ! Message
