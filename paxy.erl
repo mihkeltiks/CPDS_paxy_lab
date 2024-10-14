@@ -1,5 +1,5 @@
 -module(paxy).
--export([start/1, stop/0, stop/1]).
+-export([start/1, stop/0, stop/1, crash/1]).
 
 -define(RED, {255,0,0}).
 -define(BLUE, {0,0,255}).
@@ -33,7 +33,7 @@ start_acceptors(AccIds, AccReg) ->
       ok;
     [AccId|Rest] ->
       [RegName|RegNameRest] = AccReg,
-      register(RegName, acceptor:start(RegName, AccId)),
+      register(RegName, acceptorFaultTolerance:start(RegName, AccId)),
       start_acceptors(Rest, RegNameRest)
   end.
 
@@ -55,6 +55,22 @@ wait_proposers(N) ->
     done ->
       wait_proposers(N-1)
   end.
+
+crash(Name) ->
+    case whereis(Name) of
+        undefined ->
+            ok;
+        Pid ->
+            unregister(Name),
+            exit(Pid, "crash"),
+            pers:open(Name),
+            {_, _, _, PanelId} = pers:read(Name),
+            PanelId ! {updateAcc, "Voted: CRASHED", "Promised: CRASHED", {0,0,0}},
+            pers:close(Name),
+            timer:sleep(2000),
+            register(Name, acceptorFaultTolerance:start(Name, na))
+    end.
+
 
 stop() ->
   stop(homer),
