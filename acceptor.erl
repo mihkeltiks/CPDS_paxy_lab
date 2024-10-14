@@ -1,5 +1,5 @@
 -module(acceptor).
--export([start/2, crash/1]).
+-export([start/2]).
 -define(drop_ratio, 0). % Drops 1 in 10 messages
 -define(delay, 1).
 
@@ -64,18 +64,4 @@ acceptor(Name, Promised, Voted, Value, PanelId) ->
             PanelId ! stop,
             pers:delete(Name),
             ok
-    end.
-
-crash(Name) ->
-    case whereis(Name) of
-        undefined -> ok;
-        Pid ->
-            unregister(Name),
-            exit(Pid, "crash"),
-            pers:open(Name),
-            {_, _, _, Pn} = pers:read(Name),
-            Pn ! {updateAcc, "Voted: CRASHED", "Promised: CRASHED", {0,0,0}},
-            pers:close(Name),
-            timer:sleep(1000),
-            register(Name, acceptor:start(Name, na))
     end.
